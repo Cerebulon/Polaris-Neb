@@ -13,14 +13,17 @@
 
 /decl/butchery_data/humanoid/avian
 	meat_name = "chicken"
-	meat_type = /obj/item/chems/food/butchery/meat/chicken
+	meat_type = /obj/item/food/butchery/meat/chicken
 
 /decl/species/neoavian
 	name = SPECIES_AVIAN
-	name_plural = "Neo-Avians"
-	description = "Avian species, largely crows, magpies and other corvids, were among the first sophonts uplifted to aid in colonizing Mars. \
-	These days they are more commonly found pursuing their own careers and goals on the fringes of human space or around their adopted homeworld \
-	of Hyperion. Neo-avian naming conventions tend to be a chosen name followed by the species of the person, followed by the location they were hatched."
+	name_plural = "Teshari"
+	description = "A race of feathered raptors who developed alongside the Skrell, \
+	inhabiting the polar tundral regions outside of Skrell territory. \
+	Extremely fragile, they developed hunting skills that emphasized \
+	taking out their prey without themselves getting hit. \
+	They are only recently becoming known on human stations \
+	after reaching space with Skrell assistance."
 	base_external_prosthetics_model = null
 
 	snow_slowdown_mod = -1
@@ -29,7 +32,7 @@
 
 	butchery_data = /decl/butchery_data/humanoid/avian
 
-	preview_outfit = /decl/hierarchy/outfit/job/generic/assistant/avian
+	preview_outfit = /decl/outfit/job/generic/assistant/avian
 
 	available_bodytypes = list(
 		/decl/bodytype/avian,
@@ -56,13 +59,26 @@
 		/decl/natural_attack/stomp/weak
 	)
 
-	available_cultural_info = list(
-		TAG_CULTURE = list(
-			/decl/cultural_info/culture/neoavian,
-			/decl/cultural_info/culture/neoavian/saurian,
-			/decl/cultural_info/culture/other
-		)
+	blood_types = list(
+		/decl/blood_type/avian/taplus,
+		/decl/blood_type/avian/taminus,
+		/decl/blood_type/avian/tbplus,
+		/decl/blood_type/avian/tbminus,
+		/decl/blood_type/avian/tatbplus,
+		/decl/blood_type/avian/tatbminus,
+		/decl/blood_type/avian/oplus,
+		/decl/blood_type/avian/ominus,
 	)
+
+/decl/species/neoavian/Initialize()
+	. = ..()
+	LAZYINITLIST(available_background_info)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/teshari)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/teshari/kamerr)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/teshari/autonomist)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/teshari/sif)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/teshari/spacer)
+	LAZYSET(default_background_info, /decl/background_category/heritage, /decl/background_detail/heritage/teshari)
 
 /decl/species/neoavian/equip_default_fallback_uniform(var/mob/living/human/H)
 	if(istype(H))
@@ -72,7 +88,7 @@
 /decl/species/neoavian/get_holder_color(var/mob/living/human/H)
 	return H.get_skin_colour()
 
-/decl/hierarchy/outfit/job/generic/assistant/avian
-	name = "Job - Avian Assistant"
+/decl/outfit/job/generic/assistant/avian
+	name = "Job - Teshari Assistant"
 	uniform = /obj/item/clothing/dress/avian_smock/worker
 	shoes = /obj/item/clothing/shoes/avian/footwraps

@@ -214,7 +214,7 @@
 		return
 
 	if (reagents.total_volume && prob(50)) // 50% chance a liquid recipe gets messy
-		dirty += CEILING(reagents.total_volume / 10)
+		dirty += ceil(reagents.total_volume / 10)
 
 	var/decl/recipe/recipe = select_recipe(RECIPE_CATEGORY_MICROWAVE, src, cooking_temperature)
 	if (!recipe)
@@ -279,7 +279,7 @@
 
 /obj/machinery/microwave/proc/has_extra_item()
 	for(var/obj/O in get_contained_external_atoms())
-		if(!istype(O,/obj/item/chems/food))
+		if(!istype(O,/obj/item/food))
 			return TRUE
 	return FALSE
 
@@ -410,7 +410,7 @@
 		qdel(O)
 	reagents.clear_reagents()
 	SSnano.update_uis(src)
-	var/obj/item/chems/food/badrecipe/ffuu = new(src)
+	var/obj/item/food/badrecipe/ffuu = new(src)
 	ffuu.add_to_reagents(/decl/material/solid/carbon, amount)
 	ffuu.add_to_reagents(/decl/material/liquid/acrylamide, amount/10)
 	return ffuu
@@ -456,5 +456,5 @@
 	las_rating = total_component_rating_of_type(/obj/item/stock_parts/micro_laser)
 
 	change_power_consumption(initial(active_power_usage) - (cap_rating * 25), POWER_USE_ACTIVE)
-	max_n_of_items = initial(max_n_of_items) + FLOOR(bin_rating)
+	max_n_of_items = initial(max_n_of_items) + floor(bin_rating)
 	cooking_power = initial(cooking_power) + (las_rating / 3)

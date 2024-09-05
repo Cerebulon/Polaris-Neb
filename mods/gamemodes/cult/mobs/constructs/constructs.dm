@@ -31,10 +31,10 @@
 	hud_used = /datum/hud/construct
 	z_flags = ZMM_MANGLE_PLANES
 	glowing_eyes = TRUE
-	ai = /datum/mob_controller/construct
+	ai = /datum/mob_controller/aggressive/construct
 	var/list/construct_spells = list()
 
-/datum/mob_controller/construct
+/datum/mob_controller/aggressive/construct
 	emote_speech = list("Hsssssssszsht.", "Hsssssssss...", "Tcshsssssssszht!")
 	emote_hear = list("wails","screeches")
 	do_wander = FALSE
@@ -110,10 +110,10 @@
 	resistance = 10
 	construct_spells = list(/spell/aoe_turf/conjure/forcewall/lesser)
 	hud_used = /datum/hud/construct/juggernaut
-	base_movement_delay = 3
-	ai = /datum/mob_controller/hostile/construct_armoured
+	base_movement_delay = 2
+	ai = /datum/mob_controller/aggressive/construct_armoured
 
-/datum/mob_controller/hostile/construct_armoured
+/datum/mob_controller/aggressive/construct_armoured
 	can_escape_buckles = TRUE
 
 /obj/item/natural_weapon/juggernaut
@@ -232,8 +232,8 @@
 	resistance = 10
 	construct_spells = list(/spell/aoe_turf/conjure/forcewall/lesser)
 	hud_used = /datum/hud/construct/juggernaut
-	base_movement_delay = 5
-	ai = /datum/mob_controller/hostile/construct_armoured
+	base_movement_delay = 2
+	ai = /datum/mob_controller/aggressive/construct_armoured
 
 /obj/item/natural_weapon/juggernaut/behemoth
 	force = 50

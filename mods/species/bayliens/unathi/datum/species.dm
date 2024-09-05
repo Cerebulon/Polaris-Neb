@@ -1,12 +1,12 @@
 /datum/appearance_descriptor/age/lizard
 	standalone_value_descriptors = list(
-		"an infant" =       1,
-		"a toddler" =       3,
-		"a child" =         7,
-		"an adolescent" =  13,
-		"a young adult" =  18,
-		"an adult" =       25,
-		"middle-aged" =    50,
+		"a hatchling" =     1,
+		"a toddler" =       5,
+		"a child" =         9,
+		"an adolescent" =  15,
+		"a young adult" =  32,
+		"an adult" =       40,
+		"mature" =         80,
 		"aging" =         150,
 		"elderly" =       260
 	)
@@ -36,7 +36,8 @@
 		SAC_HORNS,
 		SAC_FRILLS,
 		SAC_COSMETICS,
-		SAC_MARKINGS
+		SAC_MARKINGS,
+		SAC_TAIL
 	)
 
 	primitive_form = "Stok"
@@ -51,15 +52,19 @@
 
 	body_temperature = null // cold-blooded, implemented the same way nabbers do it
 
-	description = "A heavily reptillian species. They prefer warmer temperatures than most species and \
-	their native tongue is a heavy hissing laungage."
+	description = "A heavily reptillian species, Unathi hail from the Uuosa-Eso system, \
+	which roughly translates to 'burning mother'.<br/><br/> \
+	Coming from a harsh, inhospitable planet, they mostly hold ideals of \
+	honesty, virtue, proficiency and bravery above all else, frequently even their own lives. \
+	They prefer warmer temperatures than most species \
+	and their native tongue is a heavy hissing language called Sinta'Unathi."
 
 	spawn_flags = SPECIES_CAN_JOIN | SPECIES_NO_ROBOTIC_INTERNAL_ORGANS
 
 	flesh_color = "#34af10"
 	organs_icon = 'mods/species/bayliens/unathi/icons/organs.dmi'
 
-	preview_outfit = /decl/hierarchy/outfit/job/generic/doctor
+	preview_outfit = /decl/outfit/job/generic/doctor
 
 	blood_types = list(
 		/decl/blood_type/reptile/splus,
@@ -103,9 +108,15 @@
 
 /decl/species/unathi/Initialize()
 	. = ..()
-	LAZYINITLIST(available_cultural_info)
-	LAZYDISTINCTADD(available_cultural_info[TAG_CULTURE], /decl/cultural_info/culture/lizard)
-	LAZYSET(default_cultural_info, TAG_CULTURE, /decl/cultural_info/culture/lizard)
+	LAZYINITLIST(available_background_info)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/citizenship], /decl/background_detail/citizenship/moghes)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/unathi)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/unathi/heretic)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/unathi/unbound)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/unathi/redeemer)
+	LAZYDISTINCTADD(available_background_info[/decl/background_category/heritage], /decl/background_detail/heritage/unathi/yeosa)
+	LAZYSET(default_background_info, /decl/background_category/citizenship, /decl/background_detail/citizenship/moghes)
+	LAZYSET(default_background_info, /decl/background_category/heritage, /decl/background_detail/heritage/unathi)
 
 /decl/species/unathi/equip_survival_gear(var/mob/living/human/H)
 	..()

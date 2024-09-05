@@ -44,6 +44,10 @@
 	var/list/affected_exterior_turfs
 	var/next_fuel_consumption = 0
 	var/last_fuel_burn_temperature = T20C
+	// TODO: Replace this and the fuel var with just tracking currently-burning matter?
+	// Or use atom fires when those are implemented?
+	/// The minimum temperature required to ignite any fuel added.
+	var/last_fuel_ignite_temperature = 0
 	var/cap_last_fuel_burn = 850 CELSIUS // Prevent using campfires and stoves as kilns.
 	var/exterior_temperature = 30
 
@@ -124,6 +128,7 @@
 /obj/structure/fire_source/proc/die()
 	if(lit == FIRE_LIT)
 		lit = FIRE_DEAD
+		last_fuel_ignite_temperature = 0
 		last_fuel_burn_temperature = T20C
 		refresh_affected_exterior_turfs()
 		visible_message(SPAN_DANGER("\The [src] goes out!"))
@@ -230,8 +235,10 @@
 			if(mat.accelerant_value > FUEL_VALUE_NONE)
 				fuel += amount * (1 + material.accelerant_value)
 			last_fuel_burn_temperature = max(last_fuel_burn_temperature, mat.burn_temperature)
+			last_fuel_ignite_temperature = min(last_fuel_ignite_temperature, mat.ignition_point)
 		else if(mat.accelerant_value <= FUEL_VALUE_SUPPRESSANT)
-			fuel -= amount * mat.accelerant_value
+			// This means that 100u (under two soup bowls full of water), will suppress a fire with 20 fuel.
+			fuel -= amount * (mat.accelerant_value / FUEL_VALUE_SUPPRESSANT) * 2
 		fuel = max(fuel, 0)
 		loc.take_waste_burn_products(., last_fuel_burn_temperature)
 
@@ -256,7 +263,7 @@
 		// Pour fuel or water into a fire.
 		if(istype(thing, /obj/item/chems))
 			var/obj/item/chems/chems = thing
-			if(chems.standard_pour_into(src, user))
+			if(chems.standard_pour_into(user, src))
 				return TRUE
 
 	if(lit == FIRE_LIT && istype(thing, /obj/item/flame))
@@ -288,8 +295,11 @@
 	// Slowly lose burn temperature.
 	// TODO: use temperature var and equalizing system?
 	last_fuel_burn_temperature = max(ignition_temperature, last_fuel_burn_temperature)
-	if(last_fuel_burn_temperature > T20C && fuel < LOW_FUEL)
-		last_fuel_burn_temperature = max(T20C, round(last_fuel_burn_temperature * 0.9))
+	if(fuel < LOW_FUEL) // fire's dying
+		if(last_fuel_burn_temperature > T20C)
+			last_fuel_burn_temperature = max(T20C, round(last_fuel_burn_temperature * 0.95))
+		if(last_fuel_burn_temperature < last_fuel_ignite_temperature)
+			return FALSE // kill the fire, too cold to burn additional fuel
 
 	var/list/waste = list()
 	for(var/obj/item/thing in contents)
@@ -323,10 +333,10 @@
 		for(var/rtype in reagents?.reagent_volumes)
 
 			var/decl/material/reagent = GET_DECL(rtype)
-			if(reagent.accelerant_value <= FUEL_VALUE_SUPPRESSANT)
+			if(reagent.accelerant_value <= FUEL_VALUE_SUPPRESSANT && !isnull(reagent.boiling_point) && reagent.boiling_point < get_current_burn_temperature())
 				do_steam = TRUE
 
-			var/volume = max(1, round(REAGENT_VOLUME(reagents, rtype) / 10)) // arbitrary constant to get it in line with mat burning values
+			var/volume = NONUNIT_CEILING(REAGENT_VOLUME(reagents, rtype) / REAGENT_UNITS_PER_GAS_MOLE, 0.1)
 			var/list/waste_products = burn_material(reagent, volume)
 			if(!isnull(waste_products))
 				for(var/product in waste_products)
@@ -391,14 +401,14 @@
 				I.appearance_flags |= RESET_COLOR | RESET_ALPHA | KEEP_APART
 				add_overlay(I)
 				set_light(light_range_high, light_power_high, light_color_high)
-			else if(fuel <= LOW_FUEL)
-				var/image/I = image(icon, "[icon_state]_lit_dying")
-				I.appearance_flags |= RESET_COLOR | RESET_ALPHA | KEEP_APART
+			else if(fuel > LOW_FUEL)
+				var/image/I = image(icon, "[icon_state]_lit_low")
+				I.appearance_flags |= RESET_COLOR | RESET_ALPHA
 				add_overlay(I)
 				set_light(light_range_mid, light_power_mid, light_color_mid)
 			else
-				var/image/I = image(icon, "[icon_state]_lit_low")
-				I.appearance_flags |= RESET_COLOR | RESET_ALPHA
+				var/image/I = image(icon, "[icon_state]_lit_dying")
+				I.appearance_flags |= RESET_COLOR | RESET_ALPHA | KEEP_APART
 				add_overlay(I)
 				set_light(light_range_low, light_power_low, light_color_low)
 		if(FIRE_DEAD)

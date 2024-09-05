@@ -41,6 +41,9 @@
 /obj/item/clothing/get_equipment_tint()
 	return tint
 
+/obj/item/clothing/get_matter_amount_modifier()
+	return ..() * 5 // clothes are complicated and have a high surface area. todo: a better way to do this?
+
 /obj/item/clothing/Initialize()
 
 	. = ..()
@@ -89,7 +92,7 @@
 	return TRUE
 
 // Sort of a placeholder for proper tailoring.
-#define RAG_COUNT(X) CEILING((LAZYACCESS(X.matter, /decl/material/solid/organic/cloth) * 0.65) / SHEET_MATERIAL_AMOUNT)
+#define RAG_COUNT(X) ceil((LAZYACCESS(X.matter, /decl/material/solid/organic/cloth) * 0.65) / SHEET_MATERIAL_AMOUNT)
 
 /obj/item/clothing/attackby(obj/item/I, mob/user)
 	var/rags = RAG_COUNT(src)

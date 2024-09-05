@@ -10,6 +10,7 @@
 	material = /decl/material/solid/organic/wood
 	attack_verb = list("poked", "jabbed")
 	material_alteration = MAT_FLAG_ALTERATION_COLOR | MAT_FLAG_ALTERATION_NAME
+	lock_picking_level = 3
 
 /obj/item/stick/attack_self(mob/user)
 	user.visible_message("<span class='warning'>\The [user] snaps [src].</span>", "<span class='warning'>You snap [src].</span>")
@@ -35,7 +36,7 @@
 		var/atom/product_type
 		var/cloth_cost
 		if(choice == "Splint")
-			product_type = /obj/item/stack/medical/splint/simple
+			product_type = /obj/item/stack/medical/splint/crafted
 			cloth_cost = 5
 		else if(choice == "Torch")
 			product_type = /obj/item/flame/torch

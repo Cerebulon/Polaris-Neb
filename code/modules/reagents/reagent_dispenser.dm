@@ -73,9 +73,12 @@
 
 		to_chat(user, SPAN_NOTICE("It contains:"))
 		if(LAZYLEN(reagents?.reagent_volumes))
-			for(var/rtype in reagents.reagent_volumes)
+			for(var/rtype in reagents.liquid_volumes)
 				var/decl/material/R = GET_DECL(rtype)
-				to_chat(user, SPAN_NOTICE("[REAGENT_VOLUME(reagents, rtype)] unit\s of [R.liquid_name]."))
+				to_chat(user, SPAN_NOTICE("[LIQUID_VOLUME(reagents, rtype)] unit\s of [R.get_reagent_name(reagents, MAT_PHASE_LIQUID)]."))
+			for(var/rtype in reagents.solid_volumes)
+				var/decl/material/R = GET_DECL(rtype)
+				to_chat(user, SPAN_NOTICE("[SOLID_VOLUME(reagents, rtype)] unit\s of [R.get_reagent_name(reagents, MAT_PHASE_SOLID)]."))
 		else
 			to_chat(user, SPAN_NOTICE("Nothing."))
 
@@ -86,10 +89,7 @@
 
 	// We do this here to avoid putting the vessel straight into storage.
 	// This is usually handled by afterattack on /chems.
-	// The item must be an open container, but food items should not be filled from sources like this.
-	// They're open in order to add condiments, not to be poured into/out of.
-	// TODO: Rewrite open-container-ness or food to make this unnecessary!
-	if(storage && ATOM_IS_OPEN_CONTAINER(W) && !istype(W, /obj/item/chems/food) && user.a_intent == I_HELP)
+	if(storage && ATOM_IS_OPEN_CONTAINER(W) && user.a_intent == I_HELP)
 		if(W.standard_dispenser_refill(user, src))
 			return TRUE
 		if(W.standard_pour_into(user, src))
@@ -350,4 +350,5 @@
 		target.atom_flags &= ~ATOM_FLAG_OPEN_CONTAINER
 	else
 		target.atom_flags |= ATOM_FLAG_OPEN_CONTAINER
+	target.update_icon()
 	return TRUE

@@ -64,6 +64,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 	var/solid_name
 	var/gas_name
 	var/liquid_name
+	var/solution_name      // Name for the material in solution.
 	var/use_name
 	var/wall_name = "wall" // Name given to walls of this material
 	var/flags = 0          // Various status modifiers.
@@ -72,6 +73,8 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 	var/mechanics_text
 	var/antag_text
 	var/default_solid_form = /obj/item/stack/material/sheet
+
+	var/soup_hot_desc = "simmering"
 
 	var/affect_blood_on_ingest = TRUE
 	var/affect_blood_on_inhale = TRUE
@@ -346,10 +349,12 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 		CRASH("Unnamed material /decl tried to initialize.")
 	// Default use_name to name if unset.
 	use_name       ||= name
-	// Default everything else to use_name, so that if it's overridden, we use that instead of base name.
+	// Default the other state names to use_name, so that if it's overridden, we use that instead of base name.
 	liquid_name    ||= use_name
 	solid_name     ||= use_name
 	gas_name       ||= use_name
+	// Use solid_name for adjective_name so that we get "ice bracelet" instead of "water bracelet" for things made of water below 0C.
+	adjective_name ||= solid_name
 	adjective_name ||= use_name
 
 	// Null/clear a bunch of physical vars as this material is fake.
@@ -380,9 +385,10 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 		vapor_products               = null
 		compost_value                = 0
 	else if(isnull(temperature_damage_threshold))
-		for(var/value in list(ignition_point, melting_point, boiling_point, heating_point, bakes_into_at_temperature))
-			if(!isnull(value) && (isnull(temperature_damage_threshold) || temperature_damage_threshold > value))
-				temperature_damage_threshold = value
+		var/new_temperature_damage_threshold = max(melting_point, boiling_point, heating_point)
+		// Don't let the threshold be lower than the ignition point.
+		if(!isnull(new_temperature_damage_threshold) && (isnull(ignition_point) || (new_temperature_damage_threshold > ignition_point)))
+			temperature_damage_threshold = new_temperature_damage_threshold
 
 	if(!shard_icon)
 		shard_icon = shard_type
@@ -410,7 +416,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 	if(!crafting_skill)
 		. += "no construction skill set"
 	else if(!isnull(construction_difficulty))
-		var/decl/hierarchy/skill/used_skill = GET_DECL(crafting_skill)
+		var/decl/skill/used_skill = GET_DECL(crafting_skill)
 		if(!istype(used_skill))
 			. += "invalid skill decl [used_skill]"
 		else if(length(used_skill.levels) < construction_difficulty)
@@ -420,10 +426,29 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 		. += "no construction difficulty set"
 
 	if(!isnull(bakes_into_at_temperature))
-		if(!isnull(melting_point) && melting_point <= bakes_into_at_temperature)
-			. += "baking point is set but melting point is lower or equal to it"
-		if(!isnull(boiling_point) && boiling_point <= bakes_into_at_temperature)
-			. += "baking point is set but boiling point is lower or equal to it"
+		// all of these variables should be above our baking temperature, because we assume only solids not currently on fire can bake
+		// modify this if a material ever needs to bake while liquid or gaseous
+		var/list/temperatures = list("melting point" = melting_point, "boiling point" = boiling_point, "heating point" = heating_point, "ignition point" = ignition_point)
+		for(var/temperature in temperatures)
+			if(isnull(temperatures[temperature]))
+				continue
+			if(temperatures[temperature] <= bakes_into_at_temperature)
+				. += "baking point is set but [temperature] is lower or equal to it"
+
+	// this is a little overengineered for only two values...
+	// but requiring heating_point > boiling_point caused a bunch of issues
+	// at least it's easy to add more if we want to enforce order more
+	var/list/transition_temperatures_ascending = list("melting point" = melting_point, "boiling point" = boiling_point)
+	var/max_key // if not null, this is a key from the above list
+	for(var/temperature_key in transition_temperatures_ascending)
+		var/temperature = transition_temperatures_ascending[temperature_key]
+		if(isnull(temperature))
+			continue
+		if(!isnull(max_key) && temperature <= transition_temperatures_ascending[max_key])
+			var/expected_temp = transition_temperatures_ascending[max_key]
+			. += "transition temperature [temperature_key] ([temperature]K, [temperature - T0C]C) is colder than [max_key], expected >[expected_temp]K ([expected_temp - T0C]C)!"
+		else
+			max_key = temperature_key
 
 	if(accelerant_value > FUEL_VALUE_NONE && isnull(ignition_point))
 		. += "accelerant value larger than zero but null ignition point"
@@ -591,7 +616,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 // General wall debris product placement.
 // Not particularly necessary aside from snowflakey cult girders.
 /decl/material/proc/place_dismantled_product(var/turf/target, var/is_devastated, var/amount = 2, var/drop_type)
-	amount = is_devastated ? FLOOR(amount * 0.5) : amount
+	amount = is_devastated ? floor(amount * 0.5) : amount
 	if(amount > 0)
 		return create_object(target, amount, object_type = drop_type)
 
@@ -672,7 +697,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 // This doesn't apply to skin contact - this is for, e.g. extinguishers and sprays. The difference is that reagent is not directly on the mob's skin - it might just be on their clothing.
 /decl/material/proc/touch_mob(var/mob/living/M, var/amount, var/datum/reagents/holder)
 	if(accelerant_value != FUEL_VALUE_NONE && amount && istype(M))
-		M.fire_stacks += FLOOR((amount * accelerant_value)/FLAMMABLE_LIQUID_DIVISOR)
+		M.fire_stacks += floor((amount * accelerant_value)/FLAMMABLE_LIQUID_DIVISOR)
 #undef FLAMMABLE_LIQUID_DIVISOR
 
 /decl/material/proc/touch_turf(var/turf/T, var/amount, var/datum/reagents/holder) // Cleaner cleaning, lube lubbing, etc, all go here
@@ -883,10 +908,11 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 
 	// Sum our existing taste data with the incoming taste data.
 	var/total_taste = 0
+	var/new_fraction = amount / REAGENT_VOLUME(reagents, type) // the fraction of the total reagent volume that the new data is associated with
 	var/list/tastes = list()
 	var/list/newtastes = LAZYACCESS(newdata, "taste")
 	for(var/taste in newtastes)
-		var/newtaste   = newtastes[taste]
+		var/newtaste   = newtastes[taste] * new_fraction
 		tastes[taste] += newtaste
 		total_taste   += newtaste
 
@@ -895,14 +921,15 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 	// with a taste list into honey for example won't completely mask the
 	// taste of honey.
 	var/list/oldtastes = LAZYACCESS(., "taste")
+	var/old_fraction = 1 - new_fraction
 	if(length(oldtastes))
 		for(var/taste in oldtastes)
-			var/oldtaste   = oldtastes[taste]
+			var/oldtaste   = oldtastes[taste] * old_fraction
 			tastes[taste] += oldtaste
 			total_taste   += oldtaste
-	else if(taste_description)
-		tastes[taste_description] += taste_mult
-		total_taste               += taste_mult
+	else if(length(tastes) && taste_description) // only add it to the list if we already have other tastes
+		tastes[taste_description] += taste_mult * old_fraction
+		total_taste               += taste_mult * old_fraction
 
 	// Cull all tastes below 10% of total
 	if(length(tastes))
@@ -997,14 +1024,31 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 	if(!isnull(boiling_point) && burn_temperature >= boiling_point)
 		LAZYSET(., type, amount)
 
-/decl/material/proc/get_reagent_name(datum/reagents/holder)
+/decl/material/proc/get_reagent_name(datum/reagents/holder, phase = MAT_PHASE_LIQUID)
+
 	if(istype(holder) && holder.reagent_data)
 		var/list/rdata = holder.reagent_data[type]
 		if(rdata)
 			var/data_name = rdata["mask_name"]
 			if(data_name)
 				return data_name
-	return liquid_name
+
+	if(phase == MAT_PHASE_SOLID)
+		return solid_name
+
+	// Check if the material is in solution. This is a much simpler check than normal solubility.
+	if(phase == MAT_PHASE_LIQUID)
+		if(!istype(holder))
+			return liquid_name
+		var/atom/location = holder.get_reaction_loc()
+		var/temperature = location?.temperature || T20C
+
+		if(melting_point > temperature)
+			return solution_name
+		else
+			return liquid_name
+
+	return "something"
 
 /decl/material/proc/get_reagent_color(datum/reagents/holder)
 	if(istype(holder) && holder.reagent_data)

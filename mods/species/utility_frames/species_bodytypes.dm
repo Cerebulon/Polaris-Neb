@@ -1,5 +1,5 @@
 /decl/bodytype/prosthetic/utility_frame
-	name =              "utility frame"
+	name =              "synthetic"
 	desc =              "This limb is extremely cheap and simplistic, with a raw steel frame and plastic casing."
 	icon_base =         'mods/species/utility_frames/icons/body.dmi'
 	eye_icon = 'mods/species/utility_frames/icons/eyes.dmi'
@@ -23,12 +23,13 @@
 	)
 	default_sprite_accessories = list(
 		SAC_MARKINGS = list(
-			/decl/sprite_accessory/marking/frame/plating = "#8888cc",
-			/decl/sprite_accessory/marking/frame/plating/legs = "#8888cc",
-			/decl/sprite_accessory/marking/frame/plating/head = "#8888cc"
+			/decl/sprite_accessory/marking/frame/plating      = list(SAM_COLOR = "#8888cc"),
+			/decl/sprite_accessory/marking/frame/plating/legs = list(SAM_COLOR = "#8888cc"),
+			/decl/sprite_accessory/marking/frame/plating/head = list(SAM_COLOR = "#8888cc")
 		)
 	)
 	age_descriptor =        /datum/appearance_descriptor/age/utility_frame
+	uid = "bodytype_prosthetic_utility_frame"
 
 /decl/bodytype/prosthetic/utility_frame/Initialize()
 	equip_adjust = list(
@@ -48,3 +49,10 @@
 	. = ..()
 
 DEFINE_ROBOLIMB_DESIGNS(/decl/bodytype/prosthetic/utility_frame, utility_frame)
+
+/decl/bodytype/prosthetic/utility_frame/positronic
+	has_organ = list(
+		BP_BRAIN = /obj/item/organ/internal/brain/robotic/positronic,
+		BP_EYES  = /obj/item/organ/internal/eyes,
+		BP_CELL  = /obj/item/organ/internal/cell
+	)

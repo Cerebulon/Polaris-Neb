@@ -160,7 +160,7 @@
 
 // resets scarring, but ah well
 /obj/item/organ/proc/set_max_damage(var/ndamage)
-	absolute_max_damage = FLOOR(ndamage)
+	absolute_max_damage = floor(ndamage)
 	max_damage = absolute_max_damage
 
 /obj/item/organ/proc/set_species(specie_name)
@@ -183,11 +183,11 @@
 	min_broken_damage = initial(min_broken_damage)
 
 	if(absolute_max_damage)
-		set_max_damage(max(1, FLOOR(absolute_max_damage * total_health_coefficient)))
-		min_broken_damage = max(1, FLOOR(absolute_max_damage * 0.5))
+		set_max_damage(max(1, floor(absolute_max_damage * total_health_coefficient)))
+		min_broken_damage = max(1, floor(absolute_max_damage * 0.5))
 	else
-		min_broken_damage = max(1, FLOOR(min_broken_damage * total_health_coefficient))
-		set_max_damage(max(1, FLOOR(min_broken_damage * 2)))
+		min_broken_damage = max(1, floor(min_broken_damage * total_health_coefficient))
+		set_max_damage(max(1, floor(min_broken_damage * 2)))
 
 	reset_status()
 
@@ -402,7 +402,7 @@
 	target.attackby(convert_to_food(user), user)
 
 /obj/item/organ/proc/convert_to_food(mob/user)
-	var/obj/item/chems/food/organ/yum = new(get_turf(src))
+	var/obj/item/food/organ/yum = new(get_turf(src))
 	yum.SetName(name)
 	yum.appearance = src
 	if(reagents && reagents.total_volume)
@@ -651,7 +651,7 @@ var/global/list/ailment_reference_cache = list()
 	if(butchery_decl.meat_type)
 		var/list/products = butchery_decl.place_products(owner, material?.type, clamp(w_class, 1, 3), butchery_decl.meat_type)
 		if(meat_name)
-			for(var/obj/item/chems/food/butchery/product in products)
+			for(var/obj/item/food/butchery/product in products)
 				product.set_meat_name(meat_name)
 
 /obj/item/organ/physically_destroyed(skip_qdel)

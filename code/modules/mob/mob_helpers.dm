@@ -261,7 +261,7 @@ var/global/list/global/organ_rel_size = list(
 		return
 	M.shakecamera = current_time + max(TICKS_PER_RECOIL_ANIM, duration)
 	strength = abs(strength)*PIXELS_PER_STRENGTH_VAL
-	var/steps = min(1, FLOOR(duration/TICKS_PER_RECOIL_ANIM))-1
+	var/steps = min(1, floor(duration/TICKS_PER_RECOIL_ANIM))-1
 	animate(M.client, pixel_x = rand(-(strength), strength), pixel_y = rand(-(strength), strength), time = TICKS_PER_RECOIL_ANIM, easing = JUMP_EASING|EASE_IN)
 	if(steps)
 		for(var/i = 1 to steps)
@@ -408,32 +408,25 @@ var/global/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 /mob/proc/is_client_active(var/active = 1)
 	return client && client.inactivity < active MINUTES
 
-/mob/proc/can_eat()
-	return 1
-
-/mob/proc/can_force_feed()
-	return 1
-
 #define SAFE_PERP -50
 /mob/living/proc/assess_perp(var/obj/access_obj, var/check_access, var/auth_weapons, var/check_records, var/check_arrest, var/check_network)
+
 	if(stat == DEAD)
 		return SAFE_PERP
 	if(get_equipped_item(slot_handcuffed_str))
 		return SAFE_PERP
-	return 0
-
-/mob/living/human/assess_perp(var/obj/access_obj, var/check_access, var/auth_weapons, var/check_records, var/check_arrest, var/check_network)
-	var/threatcount = ..()
-	if(. == SAFE_PERP)
-		return SAFE_PERP
 
 	//Agent cards lower threatlevel.
+	var/threatcount = 0
 	var/obj/item/card/id/id = GetIdCard()
-	if(id && istype(id, /obj/item/card/id/syndicate))
-		threatcount -= 2
+
 	// A proper	CentCom id is hard currency.
-	else if(id && istype(id, /obj/item/card/id/centcom))
+	if(istype(id, /obj/item/card/id/centcom))
 		return SAFE_PERP
+
+	// Syndicate IDs have masking I guess.
+	if(istype(id, /obj/item/card/id/syndicate))
+		threatcount -= 2
 
 	if(check_access && !access_obj.allowed(src))
 		threatcount += 4
@@ -447,7 +440,7 @@ var/global/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 		if(istype(belt, /obj/item/gun) || istype(belt, /obj/item/energy_blade) || istype(belt, /obj/item/baton))
 			threatcount += 2
 
-		if(species.name != global.using_map.default_species)
+		if(get_species_name() != global.using_map.default_species)
 			threatcount += 2
 
 	if(check_records || check_arrest)

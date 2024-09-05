@@ -149,7 +149,7 @@
 	anchored                       = TRUE
 	material                       = /decl/material/solid/organic/wood
 	w_class                        = ITEM_SIZE_NORMAL
-	material_alteration            = MAT_FLAG_ALTERATION_NAME | MAT_FLAG_ALTERATION_DESC // todo: greyscale and add MAT_FLAG_ALTERATION_COLOR
+	material_alteration            = MAT_FLAG_ALTERATION_NAME | MAT_FLAG_ALTERATION_DESC | MAT_FLAG_ALTERATION_COLOR
 	var/message                    = "Unknown."
 	var/destruction_skill          = SKILL_HAULING // just brute force
 	var/destruction_tool           = TOOL_HATCHET
@@ -198,7 +198,7 @@
 /obj/structure/gravemarker/random/proc/generate()
 	icon_state = pick("wood","cross")
 
-	var/decl/cultural_info/S = GET_DECL(/decl/cultural_info/culture/human)
+	var/decl/background_detail/S = GET_DECL(/decl/background_detail/heritage/human)
 	var/nam = S.get_random_name(null, pick(MALE,FEMALE))
 	var/cur_year = global.using_map.game_year
 	var/born = cur_year - rand(5,150)
@@ -213,6 +213,7 @@
 	destruction_tool = TOOL_HAMMER
 	destruction_start_message = "smashing"
 	destruction_finish_message = "smashing"
+	material = /decl/material/solid/stone/granite
 
 // Gravemarker items.
 // TODO: unify with signs somehow? some of this behaviour is similar...
@@ -223,7 +224,7 @@
 	icon_state          = "wood"
 	material            = /decl/material/solid/organic/wood
 	w_class             = ITEM_SIZE_NORMAL
-	material_alteration = MAT_FLAG_ALTERATION_NAME | MAT_FLAG_ALTERATION_DESC // todo: greyscale and add MAT_FLAG_ALTERATION_COLOR
+	material_alteration = MAT_FLAG_ALTERATION_NAME | MAT_FLAG_ALTERATION_DESC | MAT_FLAG_ALTERATION_COLOR
 	var/gravemarker_type = /obj/structure/gravemarker
 	var/message         = "Unknown."
 

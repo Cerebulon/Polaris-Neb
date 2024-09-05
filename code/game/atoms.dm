@@ -380,7 +380,7 @@
 	if(length(reagents?.reagent_volumes))
 		LAZYINITLIST(.)
 		for(var/R in reagents.reagent_volumes)
-			.[R] += FLOOR(REAGENT_VOLUME(reagents, R) / REAGENT_UNITS_PER_MATERIAL_UNIT)
+			.[R] += floor(REAGENT_VOLUME(reagents, R) / REAGENT_UNITS_PER_MATERIAL_UNIT)
 	for(var/atom/contained_obj as anything in get_contained_external_atoms()) // machines handle component parts separately
 		. = MERGE_ASSOCS_WITH_NUM_VALUES(., contained_obj.get_contained_matter())
 
@@ -958,3 +958,19 @@
 
 /atom/proc/spark_act(obj/effect/sparks/sparks)
 	return
+
+/atom/proc/get_affecting_weather()
+	return
+
+/atom/proc/is_outside()
+	var/turf/turf = get_turf(src)
+	return istype(turf) ? turf.is_outside() : OUTSIDE_UNCERTAIN
+
+/atom/proc/can_be_poured_into(atom/source)
+	return (reagents?.maximum_volume > 0) && ATOM_IS_OPEN_CONTAINER(src)
+
+/// This is whether it's physically possible to pour from this atom to the target atom, based on context like user intent and src being open, etc.
+/// This should not check things like whether there is actually anything in src to pour.
+/// It should also not check anything controlled by the target atom, because can_be_poured_into() already exists.
+/atom/proc/can_be_poured_from(mob/user, atom/target)
+	return (reagents?.maximum_volume > 0) && ATOM_IS_OPEN_CONTAINER(src)
